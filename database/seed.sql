@@ -5,7 +5,7 @@ INSERT INTO users (email, password_hash, role) VALUES
 
 -- Businesses
 INSERT INTO businesses (name, industry, location, owner_id) VALUES
-('Pizza Palace', 'Restaurant', '123 Main St', 1);
+('Wyndham Residences Aqkol', 'Restaurant', 'Aqkol, Kazakhstan', 1);
 
 -- Bonuses
 INSERT INTO bonuses (business_id, description, type, value, conditions, is_active, created_at) VALUES
@@ -15,8 +15,8 @@ INSERT INTO bonuses (business_id, description, type, value, conditions, is_activ
 
 -- Reviews
 INSERT INTO reviews (user_id, business_id, text, rating, receipt_image_url, ai_sentiment, ai_topics, created_at) VALUES
-(2, 1, 'Great pizza and service!', 5, 'https://dummyurl.com/receipt1.jpg', 'positive', 'food,service', NOW()),
-(2, 1, 'Nice atmosphere, but slow service.', 3, 'https://dummyurl.com/receipt2.jpg', 'neutral', 'atmosphere,service', NOW());
+(2, 1, 'Great hotel and service! I would definitely recommend it to my friends. The staff is friendly and the rooms are clean. The location is also great, really close to the nature. The only downside is that the breakfast is not included in the price and it is a bit expensive. But overall, I would definitely recommend it to my friends.', 5, 'https://dummyurl.com/receipt1.jpg', 'positive', 'food,service', NOW()),
+(2, 1, 'Nice atmosphere. The food was prepared well, but the service was slow. The location is great, really close to the nature. The only downside is that the breakfast is not included in the price and it is a bit expensive. But overall, I would recommend it to my friends.', 3, 'https://dummyurl.com/receipt2.jpg', 'neutral', 'atmosphere,service', NOW());
 
 -- UserBonuses
 INSERT INTO user_bonuses (user_id, bonus_id, status, created_at) VALUES

@@ -10,6 +10,7 @@ const Login = () => {
     e.preventDefault();
     // TODO: Implement login logic
     // On success, redirect to business dashboard
+    localStorage.setItem('businessEmail', email);
     navigate('/business');
   };
 

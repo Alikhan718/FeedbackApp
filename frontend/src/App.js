@@ -8,6 +8,9 @@ import Bonuses from './pages/Bonuses';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ReviewSubmission from './pages/ReviewSubmission';
+import ClientDashboard from './pages/client/ClientDashboard';
+import ClientSettings from './pages/client/ClientSettings';
 import './App.css';
 
 function App() {
@@ -16,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/review/:businessId" element={<ReviewSubmission />} />
         <Route path="/business" element={<BusinessDashboard />}>
           <Route index element={<DashboardHome />} />
           <Route path="analytics" element={<Analytics />} />
@@ -23,6 +27,8 @@ function App() {
           <Route path="bonuses" element={<Bonuses />} />
           <Route path="settings" element={<Settings />} />
         </Route>
+        <Route path="/client" element={<ClientDashboard />} />
+        <Route path="/client/settings" element={<ClientSettings />} />
         {/* TODO: Add more routes for client side */}
       </Routes>
     </Router>
