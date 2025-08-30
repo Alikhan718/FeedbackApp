@@ -58,6 +58,18 @@ class Review {
       throw error;
     }
   }
+
+  static async getLastNByBusinessId(businessId, n = 10) {
+    try {
+      const result = await db.query(
+        `SELECT text FROM reviews WHERE business_id = $1 ORDER BY created_at DESC LIMIT $2`,
+        [businessId, n]
+      );
+      return result.rows;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = Review; 

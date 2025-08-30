@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Helmet } from 'react-helmet';
+import { QRCodeSVG } from 'qrcode.react';
+
+const API_BASE = 'http://localhost:5000/api';
 
 const initialBonuses = [
   { id: 1, description: '10% off next visit', type: 'discount', value: 10, is_active: true },
@@ -11,6 +15,34 @@ const Bonuses = () => {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ description: '', type: '', value: '' });
   const [activeTab, setActiveTab] = useState('active');
+  const [business, setBusiness] = useState(null);
+  const [loadingBiz, setLoadingBiz] = useState(true);
+  const [error, setError] = useState(null);
+  const qrRef = useRef();
+
+  // Get business for logged-in owner
+  useEffect(() => {
+    const fetchBusiness = async () => {
+      try {
+        const businessEmail = localStorage.getItem('businessEmail');
+        if (!businessEmail) throw new Error('No business email found.');
+        const userRes = await fetch(`${API_BASE}/users/email/${encodeURIComponent(businessEmail)}`);
+        if (!userRes.ok) throw new Error('Could not find business owner');
+        const user = await userRes.json();
+        const bizRes = await fetch(`${API_BASE}/business`);
+        if (!bizRes.ok) throw new Error('Could not fetch businesses');
+        const businesses = await bizRes.json();
+        const myBiz = businesses.find(b => b.owner_id === user.id);
+        if (!myBiz) throw new Error('No business found for this owner');
+        setBusiness(myBiz);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoadingBiz(false);
+      }
+    };
+    fetchBusiness();
+  }, []);
 
   const handleAddBonus = (e) => {
     e.preventDefault();
@@ -36,11 +68,51 @@ const Bonuses = () => {
     setBonuses(bonuses.filter(b => b.id !== id));
   };
 
+  const handleDownload = () => {
+    const svg = qrRef.current.querySelector('svg');
+    const serializer = new XMLSerializer();
+    const source = serializer.serializeToString(svg);
+    const blob = new Blob([source], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `review-qr-business-${business.id}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const filteredBonuses = bonuses.filter(b => activeTab === 'active' ? b.is_active : !b.is_active);
 
   return (
     <div>
+      <Helmet>
+        <title>Bonuses | Feedback App</title>
+      </Helmet>
       <h1 className="text-2xl font-bold mb-4">Bonuses</h1>
+      {/* QR Code Section */}
+      <div className="mb-8 flex justify-center">
+        <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center w-full max-w-xs" ref={qrRef}>
+          <h2 className="text-lg font-bold mb-2 text-center">Your QR Code for Reviews</h2>
+          {loadingBiz ? (
+            <div>Loading QR code...</div>
+          ) : error ? (
+            <div className="text-red-600">{error}</div>
+          ) : business ? (
+            <>
+              <QRCodeSVG value={`${window.location.origin}/review/${business.id}`} size={180} />
+              <div className="mt-2 text-sm text-gray-700 text-center">Scan to submit a review:<br /></div>
+              <button
+                onClick={handleDownload}
+                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700"
+              >
+                Download QR Code
+              </button>
+            </>
+          ) : null}
+        </div>
+      </div>
       <button
         className="mb-4 bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700"
         onClick={() => setShowForm(!showForm)}

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 
 const menuItems = [
   { 
@@ -61,11 +62,16 @@ const BusinessDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-100">
+      <Helmet>
+        <title>Business Dashboard | Feedback App</title>
+      </Helmet>
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-64 min-w-[16rem] bg-white border-r border-gray-200">
         <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
           {/* Logo/Brand */}
-          <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-gray-200">
+          <div className="flex items-center h-20 flex-shrink-0 px-4 border-b border-gray-200">
+            {/* Logo Placeholder / Image (fetched client-side via localStorage mapping) */}
+            <BusinessLogo className="w-14 h-14 mr-3" />
             <span className="text-xl font-semibold text-gray-800">Business Panel</span>
           </div>
 
@@ -147,3 +153,53 @@ const BusinessDashboard = () => {
 };
 
 export default BusinessDashboard; 
+
+// Small inline component to render the business logo in the sidebar
+const API_ORIGIN = 'http://localhost:5000';
+const API_BASE = `${API_ORIGIN}/api`;
+
+function BusinessLogo({ className = '' }) {
+  const [logoUrl, setLogoUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const businessEmail = localStorage.getItem('businessEmail');
+        if (!businessEmail) throw new Error('No business email');
+        const userRes = await fetch(`${API_BASE}/users/email/${encodeURIComponent(businessEmail)}`);
+        if (!userRes.ok) throw new Error('Owner not found');
+        const user = await userRes.json();
+        const bizRes = await fetch(`${API_BASE}/business`);
+        if (!bizRes.ok) throw new Error('Businesses fetch failed');
+        const businesses = await bizRes.json();
+        const myBiz = businesses.find((b) => b.owner_id === user.id);
+        if (!myBiz) throw new Error('Business not found');
+        const url = myBiz.logo_url;
+        if (url) {
+          setLogoUrl(/^https?:\/\//i.test(url) ? url : `${API_ORIGIN}${url}`);
+        } else {
+          setLogoUrl(null);
+        }
+      } catch (_) {
+        setLogoUrl(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogo();
+  }, []);
+
+  return (
+    <div className={`rounded-full bg-gray-200 flex items-center justify-center ${className}`} title="Business Logo">
+      {logoUrl ? (
+        <img src={logoUrl} alt="Business logo" className="w-full h-full rounded-full object-contain object-center" />
+      ) : (
+        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a4 4 0 014-4h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11a4 4 0 108 0 4 4 0 00-8 0z" />
+        </svg>
+      )}
+    </div>
+  );
+}

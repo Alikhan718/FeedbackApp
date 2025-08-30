@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -86,6 +87,9 @@ const ClientDashboard = () => {
 
   return (
     <div className="max-w-3xl mx-auto py-8">
+      <Helmet>
+        <title>My Bonuses & Reviews | Feedback App</title>
+      </Helmet>
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h1 className="text-2xl font-bold mb-2">Your Profile</h1>
         <div className="mb-2"><span className="font-semibold">Email:</span> {user.email}</div>

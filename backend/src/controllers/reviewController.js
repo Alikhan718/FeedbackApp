@@ -26,6 +26,24 @@ const reviewController = {
         return res.status(404).json({ error: 'Business not found' });
       }
 
+      // Duplicate review detection (last 10 reviews)
+      const lastReviews = await Review.getLastNByBusinessId(businessId, 10);
+      const normalizedNewText = text.trim().toLowerCase();
+      const isDuplicate = lastReviews.some(r => r.text.trim().toLowerCase() === normalizedNewText);
+      if (isDuplicate) {
+        return res.status(200).json({
+          approved: false,
+          message: 'Duplicate review detected',
+          reason: 'Your review is too similar to a recent review. Please provide unique feedback.',
+          suggestions: 'Try to add more details or share a different aspect of your experience.',
+          sentiment: null,
+          topics: [],
+          covered_aspects: [],
+          missing_aspects: [],
+          confirmation_message: null
+        });
+      }
+
       // Process receipt image with OCR if provided
       let receiptText = null;
       if (receiptImage) {
@@ -37,16 +55,31 @@ const reviewController = {
         }
       }
 
+      // Process review text with AI for validation
+      const aiResult = await aiService.analyzeReview(text, business.industry);
+
+      // If AI doesn't approve the review, return rejection with suggestions
+      if (!aiResult.approved) {
+        return res.status(200).json({
+          approved: false,
+          message: 'Review needs improvement',
+          reason: aiResult.reason,
+          suggestions: aiResult.suggestions,
+          sentiment: aiResult.sentiment,
+          topics: aiResult.topics,
+          covered_aspects: aiResult.covered_aspects,
+          missing_aspects: aiResult.missing_aspects,
+          confirmation_message: aiResult.confirmation_message
+        });
+      }
+
       // Check if user exists, if not create one
       let user = await User.getByEmail(userEmail);
       if (!user) {
         user = await User.createAfterReview(userEmail);
       }
 
-      // Process review text with AI for sentiment and topics
-      const aiResult = await aiService.analyzeReview(text);
-      
-      // Create the review
+      // Create the review (only if approved by AI)
       const review = await Review.create({
         user_id: user.id,
         business_id: businessId,
@@ -72,11 +105,17 @@ const reviewController = {
       }
 
       res.status(201).json({
+        approved: true,
         message: 'Review submitted successfully',
         review,
         user: { id: user.id, email: user.email },
         assignedBonus,
-        receiptProcessed: !!receiptText
+        receiptProcessed: !!receiptText,
+        sentiment: aiResult.sentiment,
+        topics: aiResult.topics,
+        covered_aspects: aiResult.covered_aspects,
+        missing_aspects: aiResult.missing_aspects,
+        confirmation_message: aiResult.confirmation_message
       });
 
     } catch (error) {

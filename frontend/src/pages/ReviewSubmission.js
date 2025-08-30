@@ -14,6 +14,7 @@ const ReviewSubmission = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [aiResponse, setAiResponse] = useState(null);
 
   useEffect(() => {
     // Fetch business info when component mounts
@@ -43,6 +44,7 @@ const ReviewSubmission = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setAiResponse(null);
 
     try {
       // Create FormData object to handle file upload
@@ -60,15 +62,22 @@ const ReviewSubmission = () => {
         body: formDataToSend
       });
 
+      const result = await response.json();
+
       if (response.ok) {
-        const result = await response.json();
-        setSubmitted(true);
-        // Save user email for client dashboard access
-        localStorage.setItem('clientEmail', formData.userEmail);
-        console.log('Review submitted successfully:', result);
+        if (result.approved) {
+          // Review was approved by AI
+          setAiResponse(result); // Save the AI response for confirmation page
+          setSubmitted(true);
+          localStorage.setItem('clientEmail', formData.userEmail);
+          console.log('Review submitted successfully:', result);
+        } else {
+          // Review was rejected by AI
+          setAiResponse(result);
+          console.log('Review rejected by AI:', result);
+        }
       } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to submit review');
+        alert(result.error || 'Failed to submit review');
       }
     } catch (error) {
       console.error('Error submitting review:', error);
@@ -85,13 +94,21 @@ const ReviewSubmission = () => {
     });
   };
 
+  const handleRetry = () => {
+    setAiResponse(null);
+  };
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md text-center">
           <div className="text-green-500 text-7xl mb-6">✅</div>
           <h2 className="text-2xl font-bold mb-4">Thank You!</h2>
-          <p className="text-gray-600 mb-6">Your review has been submitted successfully and is being processed by AI.</p>
+          <p className="text-gray-600 mb-6">
+            {aiResponse && aiResponse.confirmation_message
+              ? aiResponse.confirmation_message
+              : 'Your review has been approved and submitted successfully!'}
+          </p>
           <p className="text-sm text-gray-500 mb-8">You will receive your bonus shortly!</p>
           <button
             onClick={() => navigate('/')}
@@ -104,6 +121,46 @@ const ReviewSubmission = () => {
             className="w-full bg-green-600 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-green-700 active:bg-green-800 transition-colors"
           >
             View My Bonuses
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (aiResponse && !aiResponse.approved) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md text-center">
+          <div className="text-yellow-500 text-7xl mb-6">⚠️</div>
+          <h2 className="text-2xl font-bold mb-4">Review Needs Improvement</h2>
+          <p className="text-gray-600 mb-4">{aiResponse.reason}</p>
+
+          {/* Show covered and missing aspects */}
+          <div className="mb-4">
+            <div className="text-sm text-gray-700 mb-1 font-semibold">Covered Aspects:</div>
+            <div className="text-sm text-green-700 mb-2">{aiResponse.covered_aspects && aiResponse.covered_aspects.length > 0 ? aiResponse.covered_aspects.join(', ') : 'None'}</div>
+            <div className="text-sm text-gray-700 mb-1 font-semibold">Missing Aspects:</div>
+            <div className="text-sm text-red-700 mb-2">{aiResponse.missing_aspects && aiResponse.missing_aspects.length > 0 ? aiResponse.missing_aspects.join(', ') : 'None'}</div>
+          </div>
+
+          {aiResponse.suggestions && (
+            <div className="bg-blue-50 p-4 rounded-lg mb-6">
+              <h3 className="font-semibold text-blue-800 mb-2">Suggestions:</h3>
+              <p className="text-blue-700 text-sm">{aiResponse.suggestions}</p>
+            </div>
+          )}
+
+          <div className="text-sm text-gray-500 mb-6">
+            <p>AI Analysis:</p>
+            <p>Sentiment: <span className="font-medium">{aiResponse.sentiment}</span></p>
+            <p>Topics: <span className="font-medium">{aiResponse.topics.join(', ')}</span></p>
+          </div>
+
+          <button
+            onClick={handleRetry}
+            className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors"
+          >
+            Edit Review
           </button>
         </div>
       </div>
@@ -124,7 +181,18 @@ const ReviewSubmission = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-4 sm:py-8">
       <div className="max-w-xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-4">
+        {/* Business Logo */}
+        <div className="flex flex-col items-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200 mb-2">
+            {business && business.logo_url ? (
+              <img src={/^https?:\/\//i.test(business.logo_url) ? business.logo_url : `http://localhost:5000${business.logo_url}`} alt="Business logo" className="object-contain object-center w-full h-full" />
+            ) : (
+              <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a4 4 0 014-4h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11a4 4 0 108 0 4 4 0 00-8 0z" />
+              </svg>
+            )}
+          </div>
           <h1 className="text-2xl font-bold mb-2">{business.name}</h1>
           <p className="text-gray-600 mb-3">{business.industry} • {business.location}</p>
           <p className="text-sm text-gray-500">Please share your experience with us!</p>
@@ -172,6 +240,9 @@ const ReviewSubmission = () => {
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 placeholder="Tell us about your experience..."
               />
+              <p className="text-sm text-gray-500 mt-2">
+                Please provide detailed feedback about your experience. AI will review your submission.
+              </p>
             </div>
 
             {/* Receipt Upload */}
@@ -238,7 +309,7 @@ const ReviewSubmission = () => {
               disabled={loading}
               className="w-full bg-blue-600 text-white py-4 px-4 rounded-lg text-lg font-medium hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? 'Submitting...' : 'Submit Review & Get Bonus'}
+              {loading ? 'AI is reviewing your submission...' : 'Submit Review & Get Bonus'}
             </button>
           </form>
         </div>

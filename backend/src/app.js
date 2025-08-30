@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const path = require('path');
 require('dotenv').config();
 
 const businessRoutes = require('./routes/business');
@@ -21,6 +22,10 @@ const upload = multer({
 
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded files (logos, etc.) statically
+// __dirname: backend/src → uploads root should be backend/uploads
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Health check route
 app.get('/api/health', (req, res) => {

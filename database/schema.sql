@@ -14,6 +14,7 @@ CREATE TABLE businesses (
     industry VARCHAR(100),
     location VARCHAR(255),
     owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    logo_url VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

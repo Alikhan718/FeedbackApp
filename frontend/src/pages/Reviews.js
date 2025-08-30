@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 
 const API_BASE = 'http://localhost:5000/api';
 
@@ -48,7 +49,21 @@ const Reviews = () => {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Reviews for {business?.name}</h1>
+      <Helmet>
+        <title>Business Reviews | Feedback App</title>
+      </Helmet>
+      <div className="flex items-center mb-4">
+        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200 mr-3">
+          {business?.logo_url ? (
+            <img
+              src={/^https?:\/\//i.test(business.logo_url) ? business.logo_url : `http://localhost:5000${business.logo_url}`}
+              alt="Business logo"
+              className="w-full h-full object-cover"
+            />
+          ) : null}
+        </div>
+        <h1 className="text-2xl font-bold">Reviews for {business?.name}</h1>
+      </div>
       {reviews.length === 0 ? (
         <p>No reviews yet.</p>
       ) : (

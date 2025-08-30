@@ -62,6 +62,18 @@ class Business {
       throw error;
     }
   }
+
+  static async updateLogoUrl(businessId, logoUrl) {
+    try {
+      const result = await db.query(
+        'UPDATE businesses SET logo_url = $1 WHERE id = $2 RETURNING *',
+        [logoUrl, businessId]
+      );
+      return result.rows[0];
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = Business; 
