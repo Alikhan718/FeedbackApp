@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_BASE, getImageUrl } from '../config/api';
 
 const ReviewSubmission = () => {
   const { businessId } = useParams();
@@ -16,14 +17,9 @@ const ReviewSubmission = () => {
   const [submitted, setSubmitted] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
 
-  useEffect(() => {
-    // Fetch business info when component mounts
-    fetchBusinessInfo();
-  }, [businessId]);
-
-  const fetchBusinessInfo = async () => {
+  const fetchBusinessInfo = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/business/${businessId}`);
+      const response = await fetch(`${API_BASE}/business/${businessId}`);
       if (response.ok) {
         const businessData = await response.json();
         setBusiness(businessData);
@@ -31,7 +27,12 @@ const ReviewSubmission = () => {
     } catch (error) {
       console.error('Error fetching business info:', error);
     }
-  };
+  }, [businessId]);
+
+  useEffect(() => {
+    // Fetch business info when component mounts
+    fetchBusinessInfo();
+  }, [businessId, fetchBusinessInfo]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -57,7 +58,7 @@ const ReviewSubmission = () => {
         formDataToSend.append('receipt', receipt);
       }
 
-      const response = await fetch('http://localhost:5000/api/reviews', {
+      const response = await fetch(`${API_BASE}/reviews`, {
         method: 'POST',
         body: formDataToSend
       });
@@ -185,7 +186,7 @@ const ReviewSubmission = () => {
         <div className="flex flex-col items-center mb-4">
           <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200 mb-2">
             {business && business.logo_url ? (
-              <img src={/^https?:\/\//i.test(business.logo_url) ? business.logo_url : `http://localhost:5000${business.logo_url}`} alt="Business logo" className="object-contain object-center w-full h-full" />
+              <img src={getImageUrl(business.logo_url)} alt="Business logo" className="object-contain object-center w-full h-full" />
             ) : (
               <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a4 4 0 014-4h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7z" />

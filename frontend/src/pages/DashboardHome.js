@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet';
 import { QRCodeSVG } from 'qrcode.react';
 import { Link } from 'react-router-dom';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 const DashboardHome = () => {
   const [reviews, setReviews] = useState([]);

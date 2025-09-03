@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE, getImageUrl } from '../config/api';
 
 const Reviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -56,7 +55,7 @@ const Reviews = () => {
         <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200 mr-3">
           {business?.logo_url ? (
             <img
-              src={/^https?:\/\//i.test(business.logo_url) ? business.logo_url : `http://localhost:5000${business.logo_url}`}
+              src={getImageUrl(business.logo_url)}
               alt="Business logo"
               className="w-full h-full object-cover"
             />

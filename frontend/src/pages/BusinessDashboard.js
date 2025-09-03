@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import { API_BASE, getImageUrl } from '../config/api';
 
 const menuItems = [
   { 
@@ -155,12 +156,9 @@ const BusinessDashboard = () => {
 export default BusinessDashboard; 
 
 // Small inline component to render the business logo in the sidebar
-const API_ORIGIN = 'http://localhost:5000';
-const API_BASE = `${API_ORIGIN}/api`;
 
 function BusinessLogo({ className = '' }) {
   const [logoUrl, setLogoUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLogo = async () => {
@@ -175,16 +173,9 @@ function BusinessLogo({ className = '' }) {
         const businesses = await bizRes.json();
         const myBiz = businesses.find((b) => b.owner_id === user.id);
         if (!myBiz) throw new Error('Business not found');
-        const url = myBiz.logo_url;
-        if (url) {
-          setLogoUrl(/^https?:\/\//i.test(url) ? url : `${API_ORIGIN}${url}`);
-        } else {
-          setLogoUrl(null);
-        }
+        setLogoUrl(getImageUrl(myBiz.logo_url));
       } catch (_) {
         setLogoUrl(null);
-      } finally {
-        setLoading(false);
       }
     };
     fetchLogo();

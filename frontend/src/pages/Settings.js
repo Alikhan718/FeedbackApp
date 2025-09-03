@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
-
-const API_ORIGIN = 'http://localhost:5000';
-const API_BASE = `${API_ORIGIN}/api`;
+import { API_BASE, getImageUrl } from '../config/api';
 
 const Settings = () => {
   const [businessId, setBusinessId] = useState(null);
@@ -42,11 +40,7 @@ const Settings = () => {
     init();
   }, []);
 
-  const getDisplayUrl = (url) => {
-    if (!url) return null;
-    if (/^https?:\/\//i.test(url)) return url;
-    return `${API_ORIGIN}${url}`;
-  };
+  const getDisplayUrl = getImageUrl;
 
   const handleLogoChange = async (e) => {
     const file = e.target.files && e.target.files[0];

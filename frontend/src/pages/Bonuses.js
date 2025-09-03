@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet';
 import { QRCodeSVG } from 'qrcode.react';
-
-const API_BASE = 'http://localhost:5000/api';
+import { API_BASE } from '../config/api';
 
 const initialBonuses = [
   { id: 1, description: '10% off next visit', type: 'discount', value: 10, is_active: true },
