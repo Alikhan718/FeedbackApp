@@ -4,7 +4,10 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "db:init": "node -e \"require('./src/utils/databaseInit').initialize()\"",
+    "db:reset": "node -e \"require('./src/utils/databaseInit').resetDatabase()\"",
+    "db:manage": "node scripts/db-manager.js"
   },
   "keywords": [],
   "author": "",

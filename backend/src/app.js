@@ -8,6 +8,7 @@ const businessRoutes = require('./routes/business');
 const reviewRoutes = require('./routes/reviews');
 const userRoutes = require('./routes/user');
 const db = require('../config/database');
+const databaseInit = require('./utils/databaseInit');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,13 +42,16 @@ app.use('/api/users', userRoutes);
 
 // TODO: Add other API routes here
 
-// Test database connection before starting server
+// Test database connection and initialize before starting server
 async function startServer() {
   try {
     console.log('🚀 Starting server...');
     
-    // Test database connection using the improved test function
+    // Test database connection
     await db.testConnection();
+    
+    // Initialize database (create tables and seed data if needed)
+    await databaseInit.initialize();
     
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);
